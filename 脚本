@@ -1,0 +1,625 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local authenticated = false
+local password = "9178"
+
+-- 卡密验证界面
+local authGUI = Instance.new("ScreenGui", player.PlayerGui)
+local authFrame = Instance.new("Frame", authGUI)
+authFrame.Size = UDim2.new(0, 200, 0, 220)
+authFrame.Position = UDim2.new(0.5, -100, 0.5, -110)
+authFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+authFrame.BorderSizePixel = 0
+
+local authTitle = Instance.new("TextLabel", authFrame)
+authTitle.Size = UDim2.new(1, 0, 0, 40)
+authTitle.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+authTitle.Text = "脚本中心完整版"
+authTitle.TextColor3 = Color3.fromRGB(0, 255, 255)
+authTitle.TextSize = 16
+
+local authInput = Instance.new("TextBox", authFrame)
+authInput.Size = UDim2.new(0.8, 0, 0, 30)
+authInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+authInput.PlaceholderText = "输入卡密"
+authInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+authInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+authInput.TextSize = 14
+
+local authButton = Instance.new("TextButton", authFrame)
+authButton.Size = UDim2.new(0.8, 0, 0, 30)
+authButton.Position = UDim2.new(0.1, 0, 0.5, 0)
+authButton.Text = "验证"
+authButton.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+authButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+authButton.TextSize = 14
+
+-- 加载界面
+local function createLoadingScreen()
+    local loadingGUI = Instance.new("ScreenGui", player.PlayerGui)
+    local loadingFrame = Instance.new("Frame", loadingGUI)
+    loadingFrame.Size = UDim2.new(0, 300, 0, 150)
+    loadingFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    loadingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    loadingFrame.BorderSizePixel = 0
+
+    local loadingTitle = Instance.new("TextLabel", loadingFrame)
+    loadingTitle.Size = UDim2.new(1, 0, 0, 40)
+    loadingTitle.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    loadingTitle.Text = "加载中..."
+    loadingTitle.TextColor3 = Color3.fromRGB(0, 255, 255)
+    loadingTitle.TextSize = 16
+
+    local progressBarBg = Instance.new("Frame", loadingFrame)
+    progressBarBg.Size = UDim2.new(0.8, 0, 0, 20)
+    progressBarBg.Position = UDim2.new(0.1, 0, 0.4, 0)
+    progressBarBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    progressBarBg.BorderSizePixel = 0
+
+    local progressBar = Instance.new("Frame", progressBarBg)
+    progressBar.Size = UDim2.new(0, 0, 1, 0)
+    progressBar.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
+    progressBar.BorderSizePixel = 0
+
+    local progressText = Instance.new("TextLabel", loadingFrame)
+    progressText.Size = UDim2.new(1, 0, 0, 30)
+    progressText.Position = UDim2.new(0, 0, 0.7, 0)
+    progressText.BackgroundTransparency = 1
+    progressText.Text = "0%"
+    progressText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    progressText.TextSize = 14
+
+    return loadingGUI, progressBar, progressText
+end
+
+-- 主界面
+local function createMainGUI()
+    local mainGUI = Instance.new("ScreenGui", player.PlayerGui)
+    local mainFrame = Instance.new("Frame", mainGUI)
+    mainFrame.Size = UDim2.new(0, 500, 0, 350)
+    mainFrame.Position = UDim2.new(0, 50, 0, 50)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+
+    -- 标题栏
+    local titleBar = Instance.new("Frame", mainFrame)
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    titleBar.BorderSizePixel = 0
+
+    local titleText = Instance.new("TextLabel", titleBar)
+    titleText.Size = UDim2.new(0.7, 0, 1, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = "脚本中心完整版"
+    titleText.TextColor3 = Color3.fromRGB(0, 255, 255)
+    titleText.TextSize = 16
+
+    local minimizeButton = Instance.new("TextButton", titleBar)
+    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeButton.Position = UDim2.new(0.85, 0, 0.05, 0)
+    minimizeButton.Text = "-"
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.TextSize = 16
+
+    local closeButton = Instance.new("TextButton", titleBar)
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(0.92, 0, 0.05, 0)
+    closeButton.Text = "X"
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 14
+
+    -- 左侧功能栏
+    local leftPanel = Instance.new("Frame", mainFrame)
+    leftPanel.Size = UDim2.new(0, 120, 0, 310)
+    leftPanel.Position = UDim2.new(0, 0, 0, 40)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    leftPanel.BorderSizePixel = 0
+
+    -- 右侧内容区域
+    local contentArea = Instance.new("Frame", mainFrame)
+    contentArea.Size = UDim2.new(0, 380, 0, 310)
+    contentArea.Position = UDim2.new(0, 120, 0, 40)
+    contentArea.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    contentArea.BorderSizePixel = 0
+
+    -- 左侧按钮
+    local generalButton = Instance.new("TextButton", leftPanel)
+    generalButton.Size = UDim2.new(0.9, 0, 0, 40)
+    generalButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+    generalButton.Text = "通用功能"
+    generalButton.BackgroundColor3 = Color3.fromRGB(0, 100, 150)
+    generalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    generalButton.TextSize = 14
+
+    local noticeButton = Instance.new("TextButton", leftPanel)
+    noticeButton.Size = UDim2.new(0.9, 0, 0, 40)
+    noticeButton.Position = UDim2.new(0.05, 0, 0.15, 0)
+    noticeButton.Text = "公告系统"
+    noticeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+    noticeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noticeButton.TextSize = 14
+
+    local piScriptButton = Instance.new("TextButton", leftPanel)
+    piScriptButton.Size = UDim2.new(0.9, 0, 0, 40)
+    piScriptButton.Position = UDim2.new(0.05, 0, 0.25, 0)
+    piScriptButton.Text = "皮脚本"
+    piScriptButton.BackgroundColor3 = Color3.fromRGB(150, 100, 0)
+    piScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    piScriptButton.TextSize = 14
+
+    -- 通用功能内容
+    local generalContent = Instance.new("Frame", contentArea)
+    generalContent.Size = UDim2.new(1, 0, 1, 0)
+    generalContent.BackgroundTransparency = 1
+    generalContent.Visible = true
+
+    -- 公告系统内容
+    local noticeContent = Instance.new("Frame", contentArea)
+    noticeContent.Size = UDim2.new(1, 0, 1, 0)
+    noticeContent.BackgroundTransparency = 1
+    noticeContent.Visible = false
+
+    -- 通用功能按钮
+    local flyButton = Instance.new("TextButton", generalContent)
+    flyButton.Size = UDim2.new(0.45, 0, 0, 35)
+    flyButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+    flyButton.Text = "无极少侠飞行r6"
+    flyButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    flyButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+    flyButton.TextSize = 12
+
+    local speedButton = Instance.new("TextButton", generalContent)
+    speedButton.Size = UDim2.new(0.45, 0, 0, 35)
+    speedButton.Position = UDim2.new(0.05, 0, 0.15, 0)
+    speedButton.Text = "速度:16"
+    speedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    speedButton.TextSize = 12
+
+    local flySpeedButton = Instance.new("TextButton", generalContent)
+    flySpeedButton.Size = UDim2.new(0.45, 0, 0, 35)
+    flySpeedButton.Position = UDim2.new(0.05, 0, 0.25, 0)
+    flySpeedButton.Text = "飞行速度:50"
+    flySpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    flySpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    flySpeedButton.TextSize = 12
+
+    local jumpButton = Instance.new("TextButton", generalContent)
+    jumpButton.Size = UDim2.new(0.45, 0, 0, 35)
+    jumpButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+    jumpButton.Text = "无限跳:关"
+    jumpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    jumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    jumpButton.TextSize = 12
+
+    local noclipButton = Instance.new("TextButton", generalContent)
+    noclipButton.Size = UDim2.new(0.45, 0, 0, 35)
+    noclipButton.Position = UDim2.new(0.05, 0, 0.45, 0)
+    noclipButton.Text = "穿墙:关"
+    noclipButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noclipButton.TextSize = 12
+
+    local suicideButton = Instance.new("TextButton", generalContent)
+    suicideButton.Size = UDim2.new(0.45, 0, 0, 35)
+    suicideButton.Position = UDim2.new(0.05, 0, 0.55, 0)
+    suicideButton.Text = "自杀"
+    suicideButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    suicideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    suicideButton.TextSize = 12
+
+    local espButton = Instance.new("TextButton", generalContent)
+    espButton.Size = UDim2.new(0.45, 0, 0, 35)
+    espButton.Position = UDim2.new(0.05, 0, 0.65, 0)
+    espButton.Text = "透视:关"
+    espButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    espButton.TextSize = 12
+
+    local musicButton = Instance.new("TextButton", generalContent)
+    musicButton.Size = UDim2.new(0.45, 0, 0, 35)
+    musicButton.Position = UDim2.new(0.05, 0, 0.75, 0)
+    musicButton.Text = "播放"
+    musicButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    musicButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    musicButton.TextSize = 12
+
+    local volumeButton = Instance.new("TextButton", generalContent)
+    volumeButton.Size = UDim2.new(0.45, 0, 0, 35)
+    volumeButton.Position = UDim2.new(0.05, 0, 0.85, 0)
+    volumeButton.Text = "音量:50%"
+    volumeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    volumeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    volumeButton.TextSize = 12
+
+    local teleportButton = Instance.new("TextButton", generalContent)
+    teleportButton.Size = UDim2.new(0.45, 0, 0, 35)
+    teleportButton.Position = UDim2.new(0.5, 0, 0.05, 0)
+    teleportButton.Text = "传送"
+    teleportButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    teleportButton.TextSize = 12
+
+    local resetButton = Instance.new("TextButton", generalContent)
+    resetButton.Size = UDim2.new(0.45, 0, 0, 35)
+    resetButton.Position = UDim2.new(0.5, 0, 0.15, 0)
+    resetButton.Text = "恢复数据"
+    resetButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+    resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    resetButton.TextSize = 12
+
+    local destroyButton = Instance.new("TextButton", generalContent)
+    destroyButton.Size = UDim2.new(0.45, 0, 0, 35)
+    destroyButton.Position = UDim2.new(0.5, 0, 0.25, 0)
+    destroyButton.Text = "销毁脚本"
+    destroyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    destroyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    destroyButton.TextSize = 12
+
+    -- 输入框
+    local musicInput = Instance.new("TextBox", generalContent)
+    musicInput.Size = UDim2.new(0.4, 0, 0, 25)
+    musicInput.Position = UDim2.new(0.5, 0, 0.75, 0)
+    musicInput.PlaceholderText = "音乐ID"
+    musicInput.Text = "74856563303589"
+    musicInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    musicInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    musicInput.TextSize = 12
+
+    local flySpeedInput = Instance.new("TextBox", generalContent)
+    flySpeedInput.Size = UDim2.new(0.2, 0, 0, 25)
+    flySpeedInput.Position = UDim2.new(0.5, 0, 0.25, 0)
+    flySpeedInput.PlaceholderText = "50"
+    flySpeedInput.Text = "50"
+    flySpeedInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    flySpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    flySpeedInput.TextSize = 12
+
+    local speedInput = Instance.new("TextBox", generalContent)
+    speedInput.Size = UDim2.new(0.2, 0, 0, 25)
+    speedInput.Position = UDim2.new(0.5, 0, 0.15, 0)
+    speedInput.PlaceholderText = "16"
+    speedInput.Text = "16"
+    speedInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    speedInput.TextSize = 12
+
+    local teleportInput = Instance.new("TextBox", generalContent)
+    teleportInput.Size = UDim2.new(0.4, 0, 0, 25)
+    teleportInput.Position = UDim2.new(0.5, 0, 0.05, 0)
+    teleportInput.PlaceholderText = "玩家名"
+    teleportInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    teleportInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    teleportInput.TextSize = 12
+
+    -- 公告内容
+    local noticeText = Instance.new("TextLabel", noticeContent)
+    noticeText.Size = UDim2.new(0.9, 0, 0.9, 0)
+    noticeText.Position = UDim2.new(0.05, 0, 0.05, 0)
+    noticeText.BackgroundTransparency = 1
+    noticeText.Text = "公告: AI写的有错误就对了\n\n版本: 测试版\n作者: AI助手\n说明: 此脚本仅供测试使用\n功能可能不稳定，请谨慎使用"
+    noticeText.TextColor3 = Color3.fromRGB(255, 200, 0)
+    noticeText.TextSize = 14
+    noticeText.TextWrapped = true
+
+    -- 功能变量
+    local flySpeed = 50
+    local walkSpeed = 16
+    local flying = false
+    local infiniteJump = false
+    local musicPlaying = false
+    local musicVolume = 0.5
+    local noclip = false
+    local espEnabled = false
+    local soundObj = nil
+    local flyConnection = nil
+    local espObjects = {}
+    local partsCache = {}
+    local originalWalkSpeed = 16
+
+    -- 透视功能
+    local function toggleESP()
+        espEnabled = not espEnabled
+        espButton.Text = espEnabled and "透视:开" or "透视:关"
+        
+        if espEnabled then
+            for _, targetPlayer in pairs(Players:GetPlayers()) do
+                if targetPlayer ~= player and targetPlayer.Character then
+                    local highlight = Instance.new("Highlight")
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                    highlight.Parent = targetPlayer.Character
+                    
+                    local billboard = Instance.new("BillboardGui")
+                    billboard.Size = UDim2.new(0, 200, 0, 50)
+                    billboard.StudsOffset = Vector3.new(0, 3, 0)
+                    billboard.AlwaysOnTop = true
+                    billboard.Parent = targetPlayer.Character
+                    
+                    local nameLabel = Instance.new("TextLabel", billboard)
+                    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    nameLabel.BackgroundTransparency = 1
+                    nameLabel.Text = targetPlayer.Name
+                    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    nameLabel.TextSize = 14
+                    
+                    local healthLabel = Instance.new("TextLabel", billboard)
+                    healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+                    healthLabel.BackgroundTransparency = 1
+                    healthLabel.Text = "HP: " .. math.floor(targetPlayer.Character.Humanoid.Health)
+                    healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    healthLabel.TextSize = 12
+                    
+                    espObjects[targetPlayer] = {highlight, billboard}
+                end
+            end
+        else
+            for _, objects in pairs(espObjects) do
+                for _, obj in pairs(objects) do
+                    obj:Destroy()
+                end
+            end
+            espObjects = {}
+        end
+    end
+
+    -- 恢复数据功能
+    local function resetData()
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            
+            if humanoid then
+                humanoid.WalkSpeed = originalWalkSpeed
+                walkSpeed = originalWalkSpeed
+                speedButton.Text = "速度:" .. walkSpeed
+                speedInput.Text = tostring(walkSpeed)
+            end
+            
+            if flyConnection then flyConnection:Disconnect() end
+            
+            if rootPart then
+                for _, obj in pairs(rootPart:GetChildren()) do
+                    if obj:IsA("BodyVelocity") then obj:Destroy() end
+                end
+            end
+            
+            flying = false
+            flyButton.Text = "无极少侠飞行r6"
+            flySpeed = 50
+            flySpeedButton.Text = "飞行速度:50"
+            flySpeedInput.Text = "50"
+            
+            infiniteJump = false
+            jumpButton.Text = "无限跳:关"
+            
+            noclip = false
+            noclipButton.Text = "穿墙:关"
+            
+            if rootPart then rootPart.CanCollide = true end
+            
+            for part, state in pairs(partsCache) do
+                if part.Parent then part.CanCollide = state end
+            end
+            partsCache = {}
+            
+            if soundObj then soundObj:Stop() end
+            
+            musicPlaying = false
+            musicButton.Text = "播放"
+            musicVolume = 0.5
+            volumeButton.Text = "音量:50%"
+            
+            if espEnabled then toggleESP() end
+        end
+    end
+
+    -- 按钮功能
+    flyButton.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/396abc/Script/refs/heads/main/MobileFly.lua"))()
+    end)
+    
+    speedButton.MouseButton1Click:Connect(function()
+        local newSpeed = tonumber(speedInput.Text)
+        if newSpeed and newSpeed >= 1 and newSpeed <= 400 then
+            walkSpeed = newSpeed
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.WalkSpeed = walkSpeed
+            end
+            speedButton.Text = "速度:" .. walkSpeed
+        else
+            speedInput.Text = tostring(walkSpeed)
+        end
+    end)
+    
+    flySpeedButton.MouseButton1Click:Connect(function()
+        local newFlySpeed = tonumber(flySpeedInput.Text)
+        if newFlySpeed and newFlySpeed >= 1 and newFlySpeed <= 400 then
+            flySpeed = newFlySpeed
+            flySpeedButton.Text = "飞行速度:" .. flySpeed
+        else
+            flySpeedInput.Text = tostring(flySpeed)
+        end
+    end)
+    
+    jumpButton.MouseButton1Click:Connect(function()
+        infiniteJump = not infiniteJump
+        jumpButton.Text = infiniteJump and "无限跳:开" or "无限跳:关"
+    end)
+    
+    noclipButton.MouseButton1Click:Connect(function()
+        noclip = not noclip
+        noclipButton.Text = noclip and "穿墙:开" or "穿墙:关"
+        
+        if player.Character then
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            if rootPart then
+                if noclip then
+                    rootPart.CanCollide = false
+                    for _, part in pairs(workspace:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide and part ~= rootPart then
+                            partsCache[part] = part.CanCollide
+                            part.CanCollide = false
+                        end
+                    end
+                else
+                    rootPart.CanCollide = true
+                    for part, state in pairs(partsCache) do
+                        if part.Parent then part.CanCollide = state end
+                    end
+                    partsCache = {}
+                end
+            end
+        end
+    end)
+    
+    suicideButton.MouseButton1Click:Connect(function()
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.Health = 0
+        end
+    end)
+    
+    espButton.MouseButton1Click:Connect(toggleESP)
+    
+    musicButton.MouseButton1Click:Connect(function()
+        musicPlaying = not musicPlaying
+        musicButton.Text = musicPlaying and "停止" or "播放"
+        
+        if musicPlaying then
+            if soundObj then
+                soundObj:Stop()
+                soundObj:Destroy()
+            end
+            
+            soundObj = Instance.new("Sound")
+            soundObj.SoundId = "rbxassetid://" .. musicInput.Text
+            soundObj.Looped = true
+            soundObj.Volume = musicVolume
+            soundObj.Parent = workspace
+            soundObj:Play()
+        else
+            if soundObj then soundObj:Stop() end
+        end
+    end)
+    
+    volumeButton.MouseButton1Click:Connect(function()
+        musicVolume = musicVolume + 0.1
+        if musicVolume > 1 then musicVolume = 0.1 end
+        volumeButton.Text = "音量:" .. math.floor(musicVolume * 100) .. "%"
+        if soundObj then soundObj.Volume = musicVolume end
+    end)
+    
+    teleportButton.MouseButton1Click:Connect(function()
+        local targetName = teleportInput.Text
+        for _, targetPlayer in pairs(Players:GetPlayers()) do
+            if string.lower(targetPlayer.Name) == string.lower(targetName) then
+                local targetChar = targetPlayer.Character
+                if targetChar then
+                    local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+                    if targetRoot and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        player.Character.HumanoidRootPart.CFrame = targetRoot.CFrame + Vector3.new(0, 5, 0)
+                        break
+                    end
+                end
+            end
+        end
+    end)
+    
+    resetButton.MouseButton1Click:Connect(resetData)
+    
+    destroyButton.MouseButton1Click:Connect(function()
+        mainGUI:Destroy()
+    end)
+    
+    piScriptButton.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaopi77/xiaopi77/main/QQ1002100032-Roblox-Pi-script.lua"))()
+    end)
+    
+    -- 导航按钮功能
+    generalButton.MouseButton1Click:Connect(function()
+        generalContent.Visible = true
+        noticeContent.Visible = false
+    end)
+    
+    noticeButton.MouseButton1Click:Connect(function()
+        generalContent.Visible = false
+        noticeContent.Visible = true
+    end)
+    
+    -- 界面控制
+    minimizeButton.MouseButton1Click:Connect(function()
+        if mainFrame.Size.Y.Offset == 350 then
+            mainFrame.Size = UDim2.new(0, 500, 0, 40)
+        else
+            mainFrame.Size = UDim2.new(0, 500, 0, 350)
+        end
+    end)
+    
+    closeButton.MouseButton1Click:Connect(function()
+        mainGUI:Destroy()
+    end)
+    
+    -- 无限跳功能
+    UserInputService.JumpRequest:Connect(function()
+        if infiniteJump and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+    
+    return mainGUI
+end
+
+-- 验证按钮点击事件
+authButton.MouseButton1Click:Connect(function()
+    if authInput.Text == password then
+        authenticated = true
+        
+        -- 创建加载界面
+        local loadingGUI, progressBar, progressText = createLoadingScreen()
+        
+        -- 模拟加载过程
+        spawn(function()
+            for i = 0, 100, 2 do
+                progressBar.Size = UDim2.new(i / 100, 0, 1, 0)
+                progressText.Text = i .. "%"
+                wait(0.02)
+            end
+            
+            -- 加载完成后显示主界面
+            loadingGUI:Destroy()
+            local mainGUI = createMainGUI()
+            
+            -- 主界面从上方滑入
+            local mainFrame = mainGUI:FindFirstChild("MainFrame")
+            if mainFrame then
+                mainFrame.Position = UDim2.new(0.5, -250, 0, -350)
+                
+                local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                local tween = TweenService:Create(mainFrame, tweenInfo, {Position = UDim2.new(0.5, -250, 0.5, -175)})
+                tween:Play()
+            end
+        end)
+    else
+        authInput.Text = ""
+        authInput.PlaceholderText = "卡密错误"
+    end
+end)
+
+-- 角色重生处理
+player.CharacterAdded:Connect(function(character)
+    if authenticated then
+        wait(1)
+        -- 重生后重新设置速度
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = walkSpeed
+    end
+end)
