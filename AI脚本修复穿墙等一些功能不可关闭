@@ -1,0 +1,368 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/useranewrff/roblox/main/%E9%BB%91%E9%87%91.lua"))()
+
+local Window = OrionLib:MakeWindow({Name = "AI脚本中心", HidePremium = false, SaveConfig = true,IntroText = "脚本启动", ConfigFolder = "脚本启动"})
+
+game:GetService("StarterGui"):SetCore("SendNotification",{ Title = "脚本启动"; Text ="脚本启动"; Duration = 5; })
+
+local about = Window:MakeTab({
+    Name = "AI助手制作",
+    Icon = "rbxassetid://13519683179",
+    PremiumOnly = false
+})
+
+about:AddParagraph("脚本为永久免费脚本","请勿拿去圈钱,圈钱的人司马")
+about:AddParagraph("您的注入器:"," "..identifyexecutor().."")
+about:AddParagraph("您当前服务器的ID"," "..game.GameId.."")
+
+local Tab =Window:MakeTab({
+	Name = "公告",
+	Icon = "rbxassetid://13519683179",
+	PremiumOnly = false
+})
+
+Tab:AddButton({
+	Name = "如有错误就对了，反正是AI写的",
+	Callback = function()
+     setclipboard("")
+  	end
+})
+
+-- 新增通用功能标签页
+local UniversalTab = Window:MakeTab({
+    Name = "通用功能",
+    Icon = "rbxassetid://13519683179",
+    PremiumOnly = false
+})
+
+-- 飞行功能
+UniversalTab:AddButton({
+    Name = "🛸 无敌少侠飞行",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/396abc/Script/refs/heads/main/MobileFly.lua"))()
+    end
+})
+
+-- 无限跳功能 - 修复版（可开关）
+local InfiniteJumpEnabled = false
+local InfiniteJumpConnection = nil
+
+UniversalTab:AddToggle({
+    Name = "🦘 无限跳",
+    Default = false,
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
+        if Value then
+            local Player = game:GetService("Players").LocalPlayer
+            local Mouse = Player:GetMouse()
+            
+            InfiniteJumpConnection = Mouse.KeyDown:connect(function(key)
+                if key == " " and InfiniteJumpEnabled and Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
+                    Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                end
+            end)
+        else
+            if InfiniteJumpConnection then
+                InfiniteJumpConnection:Disconnect()
+                InfiniteJumpConnection = nil
+            end
+        end
+    end
+})
+
+-- 移动速度调节
+UniversalTab:AddTextbox({
+    Name = "🏃 移动速度 (1-400)",
+    Default = "16",
+    TextDisappear = true,
+    Callback = function(Value)
+        local speed = tonumber(Value)
+        if speed and speed >= 1 and speed <= 400 then
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChildOfClass("Humanoid") then
+                character:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
+            end
+        end
+    end
+})
+
+-- 自杀功能
+UniversalTab:AddButton({
+    Name = "💀 自杀",
+    Callback = function()
+        local character = game.Players.LocalPlayer.Character
+        if character and character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid").Health = 0
+        end
+    end
+})
+
+-- 音乐功能部分
+UniversalTab:AddSection({
+    Name = "🎵 音乐控制"
+})
+
+-- 静音功能 - 修复版（可开关）
+local OriginalVolumes = {}
+local IsMuted = false
+
+UniversalTab:AddToggle({
+    Name = "🔇 静音",
+    Default = false,
+    Callback = function(Value)
+        IsMuted = Value
+        if Value then
+            -- 保存原始音量并静音
+            for _, sound in pairs(workspace:GetDescendants()) do
+                if sound:IsA("Sound") then
+                    OriginalVolumes[sound] = sound.Volume
+                    sound.Volume = 0
+                end
+            end
+        else
+            -- 恢复原始音量
+            for sound, originalVolume in pairs(OriginalVolumes) do
+                if sound and sound:IsA("Sound") then
+                    sound.Volume = originalVolume
+                end
+            end
+            OriginalVolumes = {}
+        end
+    end
+})
+
+-- 音量调节 - 修复版
+UniversalTab:AddSlider({
+    Name = "音量调节",
+    Min = 0,
+    Max = 10,
+    Default = 5,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "等级",
+    Callback = function(Value)
+        local volume = Value / 10
+        for _, sound in pairs(workspace:GetDescendants()) do
+            if sound:IsA("Sound") then
+                sound.Volume = volume
+                OriginalVolumes[sound] = volume
+            end
+        end
+    end
+})
+
+UniversalTab:AddTextbox({
+    Name = "播放音乐 (输入ID)",
+    Default = "",
+    TextDisappear = true,
+    Callback = function(Value)
+        local soundId = tonumber(Value)
+        if soundId then
+            local sound = Instance.new("Sound")
+            sound.SoundId = "rbxassetid://" .. soundId
+            sound.Volume = 0.5
+            sound.Parent = workspace
+            sound:Play()
+        end
+    end
+})
+
+-- 透视功能 - 修复版（可开关）
+local ESPEnabled = false
+local ESPHighlights = {}
+
+UniversalTab:AddToggle({
+    Name = "👁️ 透视玩家",
+    Default = false,
+    Callback = function(Value)
+        ESPEnabled = Value
+        if Value then
+            -- 开启透视
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character then
+                    CreateESP(player.Character, player.Name)
+                end
+            end
+            
+            -- 监听新玩家
+            game.Players.PlayerAdded:Connect(function(player)
+                player.CharacterAdded:Connect(function(character)
+                    if ESPEnabled then
+                        CreateESP(character, player.Name)
+                    end
+                end)
+            end)
+        else
+            -- 关闭透视
+            for _, highlight in pairs(ESPHighlights) do
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+            ESPHighlights = {}
+        end
+    end
+})
+
+function CreateESP(character, playerName)
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.5
+    highlight.Parent = character
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = character:WaitForChild("Head")
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Text = playerName
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = true
+    textLabel.Parent = billboard
+    
+    ESPHighlights[character] = highlight
+    
+    -- 监听角色死亡
+    character:WaitForChild("Humanoid").Died:Connect(function()
+        if highlight then
+            highlight:Destroy()
+        end
+        if billboard then
+            billboard:Destroy()
+        end
+    end)
+end
+
+-- 传送功能
+UniversalTab:AddTextbox({
+    Name = "✨ 传送到玩家",
+    Default = "输入玩家名",
+    TextDisappear = true,
+    Callback = function(Value)
+        local targetPlayer = nil
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if string.lower(player.Name) == string.lower(Value) then
+                targetPlayer = player
+                break
+            end
+        end
+        
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local localPlayer = game.Players.LocalPlayer
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            end
+        end
+    end
+})
+
+-- 穿墙功能 - 修复版（可开关）
+local NoclipEnabled = false
+local NoclipConnection = nil
+
+UniversalTab:AddToggle({
+    Name = "🧱 穿墙模式",
+    Default = false,
+    Callback = function(Value)
+        NoclipEnabled = Value
+        if Value then
+            -- 开启穿墙
+            NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
+                if NoclipEnabled and game.Players.LocalPlayer.Character then
+                    for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                        if child:IsA("BasePart") and child.CanCollide then
+                            child.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            -- 关闭穿墙
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+                NoclipConnection = nil
+            end
+            
+            -- 恢复碰撞
+            if game.Players.LocalPlayer.Character then
+                for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if child:IsA("BasePart") then
+                        child.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- 原有的其他标签页保持不变
+local Tab =Window:MakeTab({
+	Name = "手机注入器网址(进不去就开vpn)",
+	Icon = "rbxassetid://13519683179",
+	PremiumOnly = false
+})
+
+Tab:AddButton({
+	Name = "fluxus",
+	Callback = function()
+    setclipboard("https://fluxteam.cc")
+    end
+})
+
+Tab:AddButton({
+	Name = "vage",
+	Callback = function()
+    setclipboard("VegaX.gg")
+    end
+})
+
+Tab:AddButton({
+	Name = "Arceus x(阿尔宙斯)",
+	Callback = function()
+    setclipboard("https://spdmteam.com")
+    end
+})
+
+Tab:AddButton({
+	Name = "Delta(忍者注入器)",
+	Callback = function()
+    setclipboard("https://deltaexector.com/")
+    end
+})
+
+Tab:AddButton({
+	Name = "codex",
+	Callback = function()
+    setclipboard("https://codex.lol/")
+    end
+})
+
+local Tab =Window:MakeTab({
+	Name = "AI脚本中心选择版本",
+	Icon = "rbxassetid://13519683179",
+	PremiumOnly = false
+})
+
+Tab:AddButton({
+	Name = "AI脚本1",
+	Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/maninffg/-/refs/heads/main/%E8%84%9A%E6%9C%AC3"))()
+    end
+})
+
+local Section = Tab:AddSection({
+	Name = "(通用)"
+})
+
+Tab:AddButton({
+	Name = "AI脚本2",
+    Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/maninffg/-/refs/heads/main/%E8%84%9A%E6%9C%AC"))()
+    end
+})
+
+OrionLib:Init()
