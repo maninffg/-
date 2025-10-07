@@ -1,0 +1,691 @@
+getgenv().ADittoKey = "WTB_FREEKEY"
+
+-- 极致流畅的加载进度条系统
+local function CreateUltimateLoadingScreen()
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    
+    -- 创建主界面
+    local LoadingGUI = Instance.new("ScreenGui")
+    LoadingGUI.Name = "UltimateLoadingScreen"
+    LoadingGUI.ResetOnSpawn = false
+    LoadingGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    LoadingGUI.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    -- 主容器
+    local MainContainer = Instance.new("Frame")
+    MainContainer.Name = "MainContainer"
+    MainContainer.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    MainContainer.BackgroundTransparency = 0.1
+    MainContainer.Size = UDim2.new(1, 0, 1, 0)
+    MainContainer.Parent = LoadingGUI
+    
+    local ContainerCorner = Instance.new("UICorner")
+    ContainerCorner.CornerRadius = UDim.new(0, 0)
+    ContainerCorner.Parent = MainContainer
+    
+    local ContainerStroke = Instance.new("UIStroke")
+    ContainerStroke.Color = Color3.fromRGB(80, 60, 180)
+    ContainerStroke.Thickness = 3
+    ContainerStroke.Parent = MainContainer
+    
+    -- 背景特效层
+    local BackgroundEffects = Instance.new("Frame")
+    BackgroundEffects.Name = "BackgroundEffects"
+    BackgroundEffects.BackgroundTransparency = 1
+    BackgroundEffects.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundEffects.Parent = MainContainer
+    
+    -- 中央内容容器
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Size = UDim2.new(0.6, 0, 0.4, 0)
+    ContentFrame.Position = UDim2.new(0.2, 0, 0.3, 0)
+    ContentFrame.Parent = MainContainer
+    
+    -- 标题
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "TitleLabel"
+    TitleLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = "DITTO HUB"
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextScaled = true
+    TitleLabel.Font = Enum.Font.GothamBlack
+    TitleLabel.TextStrokeTransparency = 0.8
+    TitleLabel.TextStrokeColor3 = Color3.fromRGB(120, 80, 220)
+    TitleLabel.Parent = ContentFrame
+    
+    -- 副标题
+    local SubtitleLabel = Instance.new("TextLabel")
+    SubtitleLabel.Name = "SubtitleLabel"
+    SubtitleLabel.Size = UDim2.new(1, 0, 0.1, 0)
+    SubtitleLabel.Position = UDim2.new(0, 0, 0.25, 0)
+    SubtitleLabel.BackgroundTransparency = 1
+    SubtitleLabel.Text = "PREMIUM SCRIPT LOADER"
+    SubtitleLabel.TextColor3 = Color3.fromRGB(180, 160, 255)
+    SubtitleLabel.TextScaled = true
+    SubtitleLabel.Font = Enum.Font.Gotham
+    SubtitleLabel.TextTransparency = 0.3
+    SubtitleLabel.Parent = ContentFrame
+    
+    -- 进度条容器
+    local ProgressContainer = Instance.new("Frame")
+    ProgressContainer.Name = "ProgressContainer"
+    ProgressContainer.BackgroundColor3 = Color3.fromRGB(30, 25, 45)
+    ProgressContainer.BackgroundTransparency = 0.2
+    ProgressContainer.Size = UDim2.new(1, 0, 0.15, 0)
+    ProgressContainer.Position = UDim2.new(0, 0, 0.5, 0)
+    ProgressContainer.Parent = ContentFrame
+    
+    local ProgressCorner = Instance.new("UICorner")
+    ProgressCorner.CornerRadius = UDim.new(1, 0)
+    ProgressCorner.Parent = ProgressContainer
+    
+    local ProgressStroke = Instance.new("UIStroke")
+    ProgressStroke.Color = Color3.fromRGB(100, 80, 200)
+    ProgressStroke.Thickness = 2
+    ProgressStroke.Parent = ProgressContainer
+    
+    -- 进度条填充
+    local ProgressFill = Instance.new("Frame")
+    ProgressFill.Name = "ProgressFill"
+    ProgressFill.BackgroundColor3 = Color3.fromRGB(120, 80, 220)
+    ProgressFill.Size = UDim2.new(0, 0, 1, 0)
+    ProgressFill.Parent = ProgressContainer
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = ProgressFill
+    
+    -- 进度条光晕效果
+    local ProgressGlow = Instance.new("Frame")
+    ProgressGlow.Name = "ProgressGlow"
+    ProgressGlow.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+    ProgressGlow.BackgroundTransparency = 0.7
+    ProgressGlow.Size = UDim2.new(0, 0, 1, 0)
+    ProgressGlow.Parent = ProgressFill
+    
+    local GlowCorner = Instance.new("UICorner")
+    GlowCorner.CornerRadius = UDim.new(1, 0)
+    GlowCorner.Parent = ProgressGlow
+    
+    -- 百分比显示
+    local PercentageLabel = Instance.new("TextLabel")
+    PercentageLabel.Name = "PercentageLabel"
+    PercentageLabel.Size = UDim2.new(1, 0, 0.3, 0)
+    PercentageLabel.Position = UDim2.new(0, 0, 0.7, 0)
+    PercentageLabel.BackgroundTransparency = 1
+    PercentageLabel.Text = "0%"
+    PercentageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PercentageLabel.TextScaled = true
+    PercentageLabel.Font = Enum.Font.GothamBold
+    PercentageLabel.TextStrokeTransparency = 0.9
+    PercentageLabel.Parent = ContentFrame
+    
+    -- 状态文本
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Name = "StatusLabel"
+    StatusLabel.Size = UDim2.new(1, 0, 0.15, 0)
+    StatusLabel.Position = UDim2.new(0, 0, 0.85, 0)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Text = "Initializing..."
+    StatusLabel.TextColor3 = Color3.fromRGB(200, 190, 255)
+    StatusLabel.TextScaled = true
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.TextTransparency = 0.2
+    StatusLabel.Parent = ContentFrame
+    
+    -- 粒子系统
+    local particles = {}
+    local function CreateParticle()
+        local particle = Instance.new("Frame")
+        particle.Name = "Particle"
+        particle.BackgroundColor3 = Color3.fromRGB(
+            math.random(120, 180),
+            math.random(80, 140),
+            math.random(200, 255)
+        )
+        particle.BackgroundTransparency = 0.7
+        particle.Size = UDim2.new(0, math.random(3, 8), 0, math.random(3, 8))
+        particle.Position = UDim2.new(
+            math.random(-50, 150) / 100,
+            0,
+            math.random(-50, 150) / 100,
+            0
+        )
+        particle.Parent = BackgroundEffects
+        
+        local particleCorner = Instance.new("UICorner")
+        particleCorner.CornerRadius = UDim.new(1, 0)
+        particleCorner.Parent = particle
+        
+        local particleInfo = {
+            instance = particle,
+            velocity = Vector2.new(
+                (math.random() - 0.5) * 4,
+                (math.random() - 0.5) * 4
+            ),
+            life = math.random(20, 60) / 10,
+            createdAt = tick()
+        }
+        
+        table.insert(particles, particleInfo)
+        return particleInfo
+    end
+    
+    -- 创建初始粒子
+    for i = 1, 50 do
+        CreateParticle()
+    end
+    
+    -- 加载阶段配置
+    local loadStages = {
+        {target = 5, status = "Starting Environment...", duration = 0.5},
+        {target = 15, status = "Loading Core Libraries...", duration = 0.8},
+        {target = 30, status = "Initializing UI Framework...", duration = 1.2},
+        {target = 50, status = "Setting Up Script Environment...", duration = 1.0},
+        {target = 70, status = "Loading Assets...", duration = 1.5},
+        {target = 85, status = "Finalizing Components...", duration = 1.0},
+        {target = 95, status = "Almost Complete...", duration = 0.8},
+        {target = 100, status = "Ready!", duration = 0.5}
+    }
+    
+    local currentProgress = 0
+    local currentStage = 1
+    local connection
+    
+    -- 更新进度函数
+    local function UpdateProgress(target, status)
+        local startProgress = currentProgress
+        local startTime = tick()
+        local duration = loadStages[currentStage].duration
+        
+        StatusLabel.Text = status
+        
+        local function update()
+            local elapsed = tick() - startTime
+            local alpha = elapsed / duration
+            
+            -- 使用缓动函数实现超流畅动画
+            local easeOut = 1 - math.pow(1 - math.min(alpha, 1), 3)
+            local easeInOut = alpha < 0.5 and 4 * alpha * alpha * alpha or 1 - math.pow(-2 * alpha + 2, 3) / 2
+            
+            currentProgress = startProgress + (target - startProgress) * easeInOut
+            
+            -- 更新进度条
+            local progressWidth = math.min(currentProgress / 100, 1)
+            ProgressFill.Size = UDim2.new(progressWidth, 0, 1, 0)
+            ProgressGlow.Size = UDim2.new(progressWidth, 0, 1, 0)
+            
+            -- 更新百分比
+            PercentageLabel.Text = string.format("%d%%", math.floor(currentProgress))
+            
+            -- 动态颜色变化
+            local hue = (currentProgress / 100) * 0.3 + 0.7
+            ProgressFill.BackgroundColor3 = Color3.fromHSV(hue, 0.8, 0.9)
+            ProgressGlow.BackgroundColor3 = Color3.fromHSV(hue, 0.6, 1)
+            
+            if alpha >= 1 then
+                currentProgress = target
+                return true
+            end
+            return false
+        end
+        
+        return update
+    end
+    
+    -- 粒子更新函数
+    local function UpdateParticles()
+        local currentTime = tick()
+        
+        for i = #particles, 1, -1 do
+            local particle = particles[i]
+            local lifeElapsed = currentTime - particle.createdAt
+            
+            if lifeElapsed > particle.life then
+                particle.instance:Destroy()
+                table.remove(particles, i)
+            else
+                -- 更新位置
+                local currentPos = particle.instance.Position
+                particle.instance.Position = UDim2.new(
+                    currentPos.X.Scale + particle.velocity.X * 0.01,
+                    currentPos.X.Offset,
+                    currentPos.Y.Scale + particle.velocity.Y * 0.01,
+                    currentPos.Y.Offset
+                )
+                
+                -- 更新透明度
+                local alpha = 1 - (lifeElapsed / particle.life)
+                particle.instance.BackgroundTransparency = 0.3 + (0.7 * (1 - alpha))
+                
+                -- 大小变化
+                particle.instance.Size = UDim2.new(
+                    0, particle.instance.Size.X.Offset * (0.95 + 0.05 * math.sin(currentTime * 5)),
+                    0, particle.instance.Size.Y.Offset * (0.95 + 0.05 * math.sin(currentTime * 5))
+                )
+            end
+        end
+        
+        -- 补充粒子
+        if #particles < 50 and math.random() < 0.3 then
+            CreateParticle()
+        end
+    end
+    
+    -- 背景动画
+    local backgroundTime = 0
+    local function UpdateBackground()
+        backgroundTime = backgroundTime + 0.02
+        
+        -- 背景颜色动态变化
+        local r = 10 + 5 * math.sin(backgroundTime * 0.5)
+        local g = 10 + 3 * math.sin(backgroundTime * 0.7)
+        local b = 15 + 8 * math.sin(backgroundTime * 0.3)
+        MainContainer.BackgroundColor3 = Color3.fromRGB(r, g, b)
+        
+        -- 标题发光效果
+        TitleLabel.TextStrokeTransparency = 0.7 + 0.2 * math.sin(backgroundTime * 3)
+    end
+    
+    -- 主循环
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        UpdateParticles()
+        UpdateBackground()
+    end)
+    
+    -- 开始加载流程
+    spawn(function()
+        for i, stage in ipairs(loadStages) do
+            currentStage = i
+            local updateFunc = UpdateProgress(stage.target, stage.status)
+            
+            local startTime = tick()
+            while tick() - startTime < stage.duration do
+                if updateFunc() then break end
+                wait(0.016) -- 60fps
+            end
+        end
+        
+        -- 加载完成特效
+        for i = 1, 20 do
+            CreateParticle()
+        end
+        
+        -- 完成动画
+        local completionTime = tick()
+        while tick() - completionTime < 1 do
+            local alpha = (tick() - completionTime) / 1
+            ProgressFill.BackgroundColor3 = Color3.fromHSV(0.3, 0.9, 0.8 + 0.2 * math.sin(alpha * 10))
+            ProgressGlow.BackgroundTransparency = 0.3 + 0.4 * math.sin(alpha * 8)
+            wait(0.016)
+        end
+        
+        -- 淡出效果
+        for i = 1, 30 do
+            MainContainer.BackgroundTransparency = i / 30
+            ContentFrame.BackgroundTransparency = i / 30
+            wait(0.016)
+        end
+        
+        -- 清理
+        connection:Disconnect()
+        LoadingGUI:Destroy()
+        
+        -- 加载完成后显示AI脚本启动器
+        CreateEnhancedAIScriptLauncher()
+    end)
+end
+
+-- 优化后的AI脚本启动器界面
+local function CreateEnhancedAIScriptLauncher()
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+
+    local function CreateGUI(title)
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "EnhancedAILauncher"
+        gui.ResetOnSpawn = false
+        gui.DisplayOrder = 10
+        gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        gui.Parent = game.Players.LocalPlayer.PlayerGui
+
+        -- 主容器
+        local mainContainer = Instance.new("Frame")
+        mainContainer.Name = "MainContainer"
+        mainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+        mainContainer.BackgroundTransparency = 0.05
+        mainContainer.Size = UDim2.new(0, 500, 0, 350)
+        mainContainer.Position = UDim2.new(0.5, -250, 0.5, -175)
+        mainContainer.Parent = gui
+
+        -- 现代化外观
+        local containerCorner = Instance.new("UICorner")
+        containerCorner.CornerRadius = UDim.new(0, 15)
+        containerCorner.Parent = mainContainer
+
+        local containerStroke = Instance.new("UIStroke")
+        containerStroke.Color = Color3.fromRGB(80, 60, 180)
+        containerStroke.Thickness = 2
+        containerStroke.Parent = mainContainer
+
+        local containerShadow = Instance.new("ImageLabel")
+        containerShadow.Name = "Shadow"
+        containerShadow.Image = "rbxassetid://5554237733"
+        containerShadow.ScaleType = Enum.ScaleType.Slice
+        containerShadow.SliceCenter = Rect.new(23,23,277,277)
+        containerShadow.BackgroundTransparency = 1
+        containerShadow.Size = UDim2.new(1, 30, 1, 30)
+        containerShadow.Position = UDim2.new(0, -15, 0, -15)
+        containerShadow.ZIndex = -1
+        containerShadow.Parent = mainContainer
+
+        -- 标题栏
+        local titleBar = Instance.new("Frame")
+        titleBar.Name = "TitleBar"
+        titleBar.BackgroundColor3 = Color3.fromRGB(30, 25, 45)
+        titleBar.Size = UDim2.new(1, 0, 0, 50)
+        titleBar.Parent = mainContainer
+
+        local titleBarCorner = Instance.new("UICorner")
+        titleBarCorner.CornerRadius = UDim.new(0, 15, 0, 0)
+        titleBarCorner.Parent = titleBar
+
+        -- 标题文字
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Name = "TitleLabel"
+        titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+        titleLabel.Position = UDim2.new(0.05, 0, 0, 0)
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Text = title
+        titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        titleLabel.TextSize = 20
+        titleLabel.Font = Enum.Font.GothamBold
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.Parent = titleBar
+
+        -- 控制按钮容器
+        local controlButtons = Instance.new("Frame")
+        controlButtons.Name = "ControlButtons"
+        controlButtons.BackgroundTransparency = 1
+        controlButtons.Size = UDim2.new(0.3, 0, 1, 0)
+        controlButtons.Position = UDim2.new(0.7, 0, 0, 0)
+        controlButtons.Parent = titleBar
+
+        -- 最小化按钮
+        local minimizeButton = Instance.new("TextButton")
+        minimizeButton.Name = "MinimizeButton"
+        minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+        minimizeButton.Position = UDim2.new(0.5, -35, 0.5, -15)
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 55, 80)
+        minimizeButton.Text = "-"
+        minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        minimizeButton.TextSize = 18
+        minimizeButton.Font = Enum.Font.GothamBold
+        minimizeButton.Parent = controlButtons
+
+        local minimizeCorner = Instance.new("UICorner")
+        minimizeCorner.CornerRadius = UDim.new(0, 6)
+        minimizeCorner.Parent = minimizeButton
+
+        -- 关闭按钮
+        local closeButton = Instance.new("TextButton")
+        closeButton.Name = "CloseButton"
+        closeButton.Size = UDim2.new(0, 30, 0, 30)
+        closeButton.Position = UDim2.new(0.5, 5, 0.5, -15)
+        closeButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        closeButton.Text = "×"
+        closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        closeButton.TextSize = 18
+        closeButton.Font = Enum.Font.GothamBold
+        closeButton.Parent = controlButtons
+
+        local closeCorner = Instance.new("UICorner")
+        closeCorner.CornerRadius = UDim.new(0, 6)
+        closeCorner.Parent = closeButton
+
+        -- 内容区域
+        local contentFrame = Instance.new("Frame")
+        contentFrame.Name = "ContentFrame"
+        contentFrame.BackgroundTransparency = 1
+        contentFrame.Size = UDim2.new(1, -40, 1, -90)
+        contentFrame.Position = UDim2.new(0, 20, 0, 60)
+        contentFrame.Parent = mainContainer
+
+        -- 消息框
+        local messageBox = Instance.new("Frame")
+        messageBox.Name = "MessageBox"
+        messageBox.BackgroundColor3 = Color3.fromRGB(35, 30, 50)
+        messageBox.Size = UDim2.new(1, 0, 0.6, 0)
+        messageBox.Position = UDim2.new(0, 0, 0, 0)
+        messageBox.Parent = contentFrame
+
+        local messageCorner = Instance.new("UICorner")
+        messageCorner.CornerRadius = UDim.new(0, 10)
+        messageCorner.Parent = messageBox
+
+        local messageStroke = Instance.new("UIStroke")
+        messageStroke.Color = Color3.fromRGB(70, 50, 160)
+        messageStroke.Thickness = 1
+        messageStroke.Parent = messageBox
+
+        -- 消息文字
+        local messageLabel = Instance.new("TextLabel")
+        messageLabel.Name = "MessageLabel"
+        messageLabel.Size = UDim2.new(1, -20, 1, -20)
+        messageLabel.Position = UDim2.new(0, 10, 0, 10)
+        messageLabel.BackgroundTransparency = 1
+        messageLabel.Text = "🎉 欢迎使用AI脚本启动器！\n\n✨ 功能特色：\n• 智能脚本修复\n• 自动穿墙功能\n• 性能优化\n• 安全稳定\n\n🚀 点击确定开始体验！"
+        messageLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
+        messageLabel.TextSize = 14
+        messageLabel.Font = Enum.Font.Gotham
+        messageLabel.TextWrapped = true
+        messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+        messageLabel.Parent = messageBox
+
+        -- 按钮容器
+        local buttonContainer = Instance.new("Frame")
+        buttonContainer.Name = "ButtonContainer"
+        buttonContainer.BackgroundTransparency = 1
+        buttonContainer.Size = UDim2.new(1, 0, 0.3, 0)
+        buttonContainer.Position = UDim2.new(0, 0, 0.65, 0)
+        buttonContainer.Parent = contentFrame
+
+        -- 取消按钮
+        local cancelButton = Instance.new("TextButton")
+        cancelButton.Name = "CancelButton"
+        cancelButton.Size = UDim2.new(0.45, 0, 1, 0)
+        cancelButton.Position = UDim2.new(0, 0, 0, 0)
+        cancelButton.BackgroundColor3 = Color3.fromRGB(60, 55, 80)
+        cancelButton.Text = "取消"
+        cancelButton.TextColor3 = Color3.fromRGB(255, 150, 150)
+        cancelButton.TextSize = 16
+        cancelButton.Font = Enum.Font.GothamBold
+        cancelButton.Parent = buttonContainer
+
+        local cancelCorner = Instance.new("UICorner")
+        cancelCorner.CornerRadius = UDim.new(0, 8)
+        cancelCorner.Parent = cancelButton
+
+        local cancelStroke = Instance.new("UIStroke")
+        cancelStroke.Color = Color3.fromRGB(100, 80, 120)
+        cancelStroke.Thickness = 1
+        cancelStroke.Parent = cancelButton
+
+        -- 确定按钮
+        local confirmButton = Instance.new("TextButton")
+        confirmButton.Name = "ConfirmButton"
+        confirmButton.Size = UDim2.new(0.45, 0, 1, 0)
+        confirmButton.Position = UDim2.new(0.55, 0, 0, 0)
+        confirmButton.BackgroundColor3 = Color3.fromRGB(80, 60, 180)
+        confirmButton.Text = "确定启动"
+        confirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        confirmButton.TextSize = 16
+        confirmButton.Font = Enum.Font.GothamBold
+        confirmButton.Parent = buttonContainer
+
+        local confirmCorner = Instance.new("UICorner")
+        confirmCorner.CornerRadius = UDim.new(0, 8)
+        confirmCorner.Parent = confirmButton
+
+        local confirmStroke = Instance.new("UIStroke")
+        confirmStroke.Color = Color3.fromRGB(120, 100, 220)
+        confirmStroke.Thickness = 1
+        confirmStroke.Parent = confirmButton
+
+        -- 按钮悬停效果
+        local function SetupButtonHover(button, normalColor, hoverColor)
+            local originalColor = normalColor
+            local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            
+            button.MouseEnter:Connect(function()
+                local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = hoverColor})
+                tween:Play()
+            end)
+            
+            button.MouseLeave:Connect(function()
+                local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor})
+                tween:Play()
+            end)
+        end
+
+        SetupButtonHover(cancelButton, Color3.fromRGB(60, 55, 80), Color3.fromRGB(80, 70, 100))
+        SetupButtonHover(confirmButton, Color3.fromRGB(80, 60, 180), Color3.fromRGB(100, 80, 220))
+        SetupButtonHover(minimizeButton, Color3.fromRGB(60, 55, 80), Color3.fromRGB(80, 75, 100))
+        SetupButtonHover(closeButton, Color3.fromRGB(180, 60, 60), Color3.fromRGB(220, 80, 80))
+
+        -- 拖动功能
+        local dragging = false
+        local startPos, startOffset
+
+        titleBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                startPos = input.Position
+                startOffset = mainContainer.Position
+                gui.Active = true
+            end
+        end)
+
+        titleBar.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+                startPos = nil
+                startOffset = nil
+                gui.Active = false
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - startPos
+                mainContainer.Position = UDim2.new(
+                    startOffset.X.Scale, startOffset.X.Offset + delta.X,
+                    startOffset.Y.Scale, startOffset.Y.Offset + delta.Y
+                )
+            end
+        end)
+
+        -- 最小化功能
+        local isMinimized = false
+        local originalSize = mainContainer.Size
+        local originalPosition = mainContainer.Position
+
+        minimizeButton.MouseButton1Click:Connect(function()
+            if isMinimized then
+                -- 恢复
+                local tween = TweenService:Create(mainContainer, TweenInfo.new(0.3), {
+                    Size = originalSize,
+                    Position = originalPosition
+                })
+                tween:Play()
+                contentFrame.Visible = true
+                minimizeButton.Text = "-"
+                isMinimized = false
+            else
+                -- 最小化
+                local minimizedSize = UDim2.new(0, 300, 0, 50)
+                local minimizedPosition = UDim2.new(
+                    mainContainer.Position.X.Scale,
+                    mainContainer.Position.X.Offset + 100,
+                    mainContainer.Position.Y.Scale,
+                    mainContainer.Position.Y.Offset + 150
+                )
+                
+                local tween = TweenService:Create(mainContainer, TweenInfo.new(0.3), {
+                    Size = minimizedSize,
+                    Position = minimizedPosition
+                })
+                tween:Play()
+                contentFrame.Visible = false
+                minimizeButton.Text = "+"
+                isMinimized = true
+            end
+        end)
+
+        -- 关闭动画
+        local function AnimateExit()
+            local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            local tween = TweenService:Create(mainContainer, tweenInfo, {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            })
+            tween:Play()
+            
+            tween.Completed:Wait()
+            gui:Destroy()
+        end
+
+        -- 按钮功能
+        cancelButton.MouseButton1Click:Connect(function()
+            AnimateExit()
+        end)
+
+        closeButton.MouseButton1Click:Connect(function()
+            AnimateExit()
+        end)
+
+        confirmButton.MouseButton1Click:Connect(function()
+            -- 按钮点击动画
+            local originalSize = confirmButton.Size
+            local tween = TweenService:Create(confirmButton, TweenInfo.new(0.1), {
+                Size = UDim2.new(originalSize.X.Scale * 0.95, originalSize.X.Offset * 0.95, originalSize.Y.Scale, originalSize.Y.Offset)
+            })
+            tween:Play()
+            
+            tween.Completed:Wait()
+            TweenService:Create(confirmButton, TweenInfo.new(0.1), {Size = originalSize}):Play()
+            
+            -- 执行脚本
+            wait(0.2)
+            AnimateExit()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/maninffg/-/refs/heads/main/AI%E8%84%9A%E6%9C%AC%E4%BF%AE%E5%A4%8D%E7%A9%BF%E5%A2%99%E7%AD%89%E4%B8%80%E4%BA%9B%E5%8A%9F%E8%83%BD%E4%B8%8D%E5%8F%AF%E5%85%B3%E9%97%AD"))()
+        end)
+
+        -- 入场动画
+        local function EntranceAnimation()
+            mainContainer.Size = UDim2.new(0, 0, 0, 0)
+            mainContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+            
+            local tween = TweenService:Create(mainContainer, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 500, 0, 350),
+                Position = UDim2.new(0.5, -250, 0.5, -175)
+            })
+            tween:Play()
+        end
+
+        EntranceAnimation()
+    end
+
+    local myTitle = "🤖 AI脚本启动器 v2.0" 
+    CreateGUI(myTitle)
+end
+
+-- 启动加载界面
+CreateUltimateLoadingScreen()
