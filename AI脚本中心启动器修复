@@ -1,0 +1,357 @@
+getgenv().ADittoKey = "WTB_FREEKEY"
+
+-- 极致流畅的加载进度条系统
+local function CreateUltimateLoadingScreen()
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    
+    -- 确保玩家对象存在
+    local player = Players.LocalPlayer
+    if not player then return end
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- 创建主界面
+    local LoadingGUI = Instance.new("ScreenGui")
+    LoadingGUI.Name = "UltimateLoadingScreen"
+    LoadingGUI.ResetOnSpawn = false
+    LoadingGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    LoadingGUI.Parent = playerGui
+    
+    -- 主容器
+    local MainContainer = Instance.new("Frame")
+    MainContainer.Name = "MainContainer"
+    MainContainer.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    MainContainer.BackgroundTransparency = 0
+    MainContainer.Size = UDim2.new(1, 0, 1, 0)
+    MainContainer.Parent = LoadingGUI
+    
+    -- 背景特效层
+    local BackgroundEffects = Instance.new("Frame")
+    BackgroundEffects.Name = "BackgroundEffects"
+    BackgroundEffects.BackgroundTransparency = 1
+    BackgroundEffects.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundEffects.Parent = MainContainer
+    
+    -- 中央内容容器
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Size = UDim2.new(0.6, 0, 0.4, 0)
+    ContentFrame.Position = UDim2.new(0.2, 0, 0.3, 0)
+    ContentFrame.Parent = MainContainer
+    
+    -- 标题
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "TitleLabel"
+    TitleLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = "DITTO HUB"
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextScaled = true
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextStrokeTransparency = 0.8
+    TitleLabel.TextStrokeColor3 = Color3.fromRGB(120, 80, 220)
+    TitleLabel.Parent = ContentFrame
+    
+    -- 副标题
+    local SubtitleLabel = Instance.new("TextLabel")
+    SubtitleLabel.Name = "SubtitleLabel"
+    SubtitleLabel.Size = UDim2.new(1, 0, 0.1, 0)
+    SubtitleLabel.Position = UDim2.new(0, 0, 0.25, 0)
+    SubtitleLabel.BackgroundTransparency = 1
+    SubtitleLabel.Text = "PREMIUM SCRIPT LOADER"
+    SubtitleLabel.TextColor3 = Color3.fromRGB(180, 160, 255)
+    SubtitleLabel.TextScaled = true
+    SubtitleLabel.Font = Enum.Font.Gotham
+    SubtitleLabel.TextTransparency = 0.3
+    SubtitleLabel.Parent = ContentFrame
+    
+    -- 进度条容器
+    local ProgressContainer = Instance.new("Frame")
+    ProgressContainer.Name = "ProgressContainer"
+    ProgressContainer.BackgroundColor3 = Color3.fromRGB(30, 25, 45)
+    ProgressContainer.BackgroundTransparency = 0.2
+    ProgressContainer.Size = UDim2.new(1, 0, 0.15, 0)
+    ProgressContainer.Position = UDim2.new(0, 0, 0.5, 0)
+    ProgressContainer.Parent = ContentFrame
+    
+    local ProgressCorner = Instance.new("UICorner")
+    ProgressCorner.CornerRadius = UDim.new(1, 0)
+    ProgressCorner.Parent = ProgressContainer
+    
+    -- 进度条填充
+    local ProgressFill = Instance.new("Frame")
+    ProgressFill.Name = "ProgressFill"
+    ProgressFill.BackgroundColor3 = Color3.fromRGB(120, 80, 220)
+    ProgressFill.Size = UDim2.new(0, 0, 1, 0)
+    ProgressFill.Parent = ProgressContainer
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = ProgressFill
+    
+    -- 进度条光晕效果
+    local ProgressGlow = Instance.new("Frame")
+    ProgressGlow.Name = "ProgressGlow"
+    ProgressGlow.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+    ProgressGlow.BackgroundTransparency = 0.7
+    ProgressGlow.Size = UDim2.new(0, 0, 1, 0)
+    ProgressGlow.Parent = ProgressFill
+    
+    local GlowCorner = Instance.new("UICorner")
+    GlowCorner.CornerRadius = UDim.new(1, 0)
+    GlowCorner.Parent = ProgressGlow
+    
+    -- 百分比显示
+    local PercentageLabel = Instance.new("TextLabel")
+    PercentageLabel.Name = "PercentageLabel"
+    PercentageLabel.Size = UDim2.new(1, 0, 0.3, 0)
+    PercentageLabel.Position = UDim2.new(0, 0, 0.7, 0)
+    PercentageLabel.BackgroundTransparency = 1
+    PercentageLabel.Text = "0%"
+    PercentageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PercentageLabel.TextScaled = true
+    PercentageLabel.Font = Enum.Font.GothamBold
+    PercentageLabel.TextStrokeTransparency = 0.9
+    PercentageLabel.Parent = ContentFrame
+    
+    -- 状态文本
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Name = "StatusLabel"
+    StatusLabel.Size = UDim2.new(1, 0, 0.15, 0)
+    StatusLabel.Position = UDim2.new(0, 0, 0.85, 0)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Text = "Initializing..."
+    StatusLabel.TextColor3 = Color3.fromRGB(200, 190, 255)
+    StatusLabel.TextScaled = true
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.TextTransparency = 0.2
+    StatusLabel.Parent = ContentFrame
+    
+    -- 增强粒子系统
+    local particles = {}
+    local particleCount = 0
+    local maxParticles = 150
+    
+    local function CreateParticle()
+        if particleCount >= maxParticles then return end
+        
+        local particle = Instance.new("Frame")
+        particle.Name = "Particle"
+        
+        -- 随机颜色
+        local colors = {
+            Color3.fromRGB(120, 80, 220),   -- 紫色
+            Color3.fromRGB(80, 180, 255),   -- 蓝色
+            Color3.fromRGB(100, 255, 150),  -- 绿色
+            Color3.fromRGB(255, 100, 100),  -- 红色
+            Color3.fromRGB(255, 180, 80),   -- 橙色
+        }
+        
+        particle.BackgroundColor3 = colors[math.random(1, #colors)]
+        particle.BackgroundTransparency = math.random(50, 80) / 100
+        particle.Size = UDim2.new(0, math.random(4, 10), 0, math.random(4, 10))
+        particle.Position = UDim2.new(
+            math.random(-50, 150) / 100,
+            0,
+            math.random(-50, 150) / 100,
+            0
+        )
+        particle.Parent = BackgroundEffects
+        
+        local particleCorner = Instance.new("UICorner")
+        particleCorner.CornerRadius = UDim.new(1, 0)
+        particleCorner.Parent = particle
+        
+        local particleInfo = {
+            instance = particle,
+            velocity = Vector2.new(
+                (math.random() - 0.5) * 3,
+                (math.random() - 0.5) * 3
+            ),
+            life = math.random(20, 60) / 10,
+            createdAt = tick(),
+            scale = math.random(80, 120) / 100
+        }
+        
+        table.insert(particles, particleInfo)
+        particleCount = particleCount + 1
+        return particleInfo
+    end
+    
+    -- 创建初始粒子
+    for i = 1, 80 do
+        CreateParticle()
+    end
+    
+    -- 加载阶段配置
+    local loadStages = {
+        {target = 5, status = "Starting Environment...", duration = 0.4},
+        {target = 15, status = "Loading Core Libraries...", duration = 0.6},
+        {target = 30, status = "Initializing UI Framework...", duration = 0.8},
+        {target = 50, status = "Setting Up Script Environment...", duration = 0.7},
+        {target = 70, status = "Loading Assets...", duration = 1.0},
+        {target = 85, status = "Finalizing Components...", duration = 0.6},
+        {target = 95, status = "Almost Complete...", duration = 0.5},
+        {target = 100, status = "Ready!", duration = 0.4}
+    }
+    
+    local currentProgress = 0
+    local currentStage = 1
+    
+    -- 更新进度函数
+    local function UpdateProgress(target, status)
+        local startProgress = currentProgress
+        local startTime = tick()
+        local duration = loadStages[currentStage].duration
+        
+        StatusLabel.Text = status
+        
+        local function update()
+            local elapsed = tick() - startTime
+            local alpha = elapsed / duration
+            
+            -- 使用缓动函数
+            local easeInOut = alpha < 0.5 and 4 * alpha * alpha * alpha or 1 - math.pow(-2 * alpha + 2, 3) / 2
+            
+            currentProgress = startProgress + (target - startProgress) * easeInOut
+            
+            -- 更新进度条
+            local progressWidth = math.min(currentProgress / 100, 1)
+            ProgressFill.Size = UDim2.new(progressWidth, 0, 1, 0)
+            ProgressGlow.Size = UDim2.new(progressWidth, 0, 1, 0)
+            
+            -- 更新百分比
+            PercentageLabel.Text = string.format("%d%%", math.floor(currentProgress))
+            
+            -- 动态颜色变化
+            local hue = (currentProgress / 100) * 0.3 + 0.7
+            ProgressFill.BackgroundColor3 = Color3.fromHSV(hue, 0.8, 0.9)
+            ProgressGlow.BackgroundColor3 = Color3.fromHSV(hue, 0.6, 1)
+            
+            if alpha >= 1 then
+                currentProgress = target
+                return true
+            end
+            return false
+        end
+        
+        return update
+    end
+    
+    -- 粒子更新函数
+    local function UpdateParticles()
+        local currentTime = tick()
+        
+        -- 补充粒子
+        if particleCount < maxParticles and math.random() < 0.4 then
+            CreateParticle()
+        end
+        
+        for i = #particles, 1, -1 do
+            local particle = particles[i]
+            local lifeElapsed = currentTime - particle.createdAt
+            
+            if lifeElapsed > particle.life then
+                particle.instance:Destroy()
+                table.remove(particles, i)
+                particleCount = particleCount - 1
+            else
+                -- 更新位置
+                local currentPos = particle.instance.Position
+                particle.instance.Position = UDim2.new(
+                    currentPos.X.Scale + particle.velocity.X * 0.01,
+                    currentPos.X.Offset,
+                    currentPos.Y.Scale + particle.velocity.Y * 0.01,
+                    currentPos.Y.Offset
+                )
+                
+                -- 更新透明度
+                local alpha = 1 - (lifeElapsed / particle.life)
+                particle.instance.BackgroundTransparency = 0.3 + (0.7 * (1 - alpha))
+                
+                -- 大小变化
+                local pulse = 0.9 + 0.1 * math.sin(currentTime * 5)
+                particle.instance.Size = UDim2.new(
+                    0, particle.instance.Size.X.Offset * pulse,
+                    0, particle.instance.Size.Y.Offset * pulse
+                )
+            end
+        end
+    end
+    
+    -- 背景动画
+    local backgroundTime = 0
+    local function UpdateBackground()
+        backgroundTime = backgroundTime + 0.02
+        
+        -- 背景颜色动态变化
+        local r = 10 + 5 * math.sin(backgroundTime * 0.5)
+        local g = 10 + 3 * math.sin(backgroundTime * 0.7)
+        local b = 15 + 8 * math.sin(backgroundTime * 0.3)
+        MainContainer.BackgroundColor3 = Color3.fromRGB(r, g, b)
+        
+        -- 标题发光效果
+        TitleLabel.TextStrokeTransparency = 0.7 + 0.2 * math.sin(backgroundTime * 3)
+    end
+    
+    -- 主循环连接
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        UpdateParticles()
+        UpdateBackground()
+    end)
+    
+    -- 开始加载流程
+    coroutine.wrap(function()
+        for i, stage in ipairs(loadStages) do
+            currentStage = i
+            local updateFunc = UpdateProgress(stage.target, stage.status)
+            
+            local startTime = tick()
+            while tick() - startTime < stage.duration do
+                if updateFunc() then break end
+                wait(0.01)
+            end
+        end
+        
+        -- 加载完成特效
+        for i = 1, 30 do
+            CreateParticle()
+        end
+        
+        -- 完成动画
+        local completionTime = tick()
+        while tick() - completionTime < 1 do
+            local alpha = (tick() - completionTime) / 1
+            ProgressFill.BackgroundColor3 = Color3.fromHSV(0.3, 0.9, 0.8 + 0.2 * math.sin(alpha * 10))
+            ProgressGlow.BackgroundTransparency = 0.3 + 0.4 * math.sin(alpha * 8)
+            wait(0.01)
+        end
+        
+        -- 淡出效果
+        for i = 1, 20 do
+            MainContainer.BackgroundTransparency = i / 20
+            wait(0.02)
+        end
+        
+        -- 清理
+        if connection then
+            connection:Disconnect()
+        end
+        LoadingGUI:Destroy()
+        
+        -- 加载完成后执行外部脚本
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/maninffg/-/refs/heads/main/AI%E8%84%9A%E6%9C%AC%E4%BF%AE%E5%A4%8D%E4%B8%80%E4%BA%9Bbug"))()
+        end)
+    end)()
+end
+
+-- 安全启动加载界面
+pcall(function()
+    CreateUltimateLoadingScreen()
+end)
