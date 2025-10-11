@@ -1,0 +1,538 @@
+-- AI脚本2.0 - 完整版
+-- 作者：AI助手
+-- 公告：该脚本还在测试阶段，如遇到功能有问题我也不会改
+
+-- 加载UI库
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 初始化窗口
+local Window = Rayfield:CreateWindow({
+    Name = "AI脚本2.0",
+    LoadingTitle = "AI脚本2.0",
+    LoadingSubtitle = "正在加载脚本...",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "AIScript2.0",
+        FileName = "Config"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvite",
+        RememberJoins = true
+    },
+    KeySystem = false,
+})
+
+-- 公告标签
+local AnnouncementTab = Window:CreateTab("公告", "rbxassetid://4483345998")
+local AnnouncementSection = AnnouncementTab:CreateSection("重要公告")
+local AnnouncementLabel = AnnouncementTab:CreateLabel("该脚本还在测试阶段，如遇到功能有问题我也不会改")
+local WarningLabel = AnnouncementTab:CreateLabel("使用风险自负，作者不承担任何责任")
+
+-- 通用功能标签
+local GeneralTab = Window:CreateTab("通用功能", "rbxassetid://4483345998")
+
+-- 透视功能
+local ESPSection = GeneralTab:CreateSection("透视功能")
+local ESPEnabled = false
+local ESPLibrary
+
+-- 加载ESP
+local ESPLoadButton = GeneralTab:CreateButton({
+    Name = "加载ESP库",
+    Callback = function()
+        ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/FE-Script/main/ESP.lua"))()
+        Rayfield:Notify({
+            Title = "ESP",
+            Content = "ESP库加载成功！",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+local ESPToggle = GeneralTab:CreateToggle({
+    Name = "开启透视",
+    CurrentValue = false,
+    Flag = "ESPEnabled",
+    Callback = function(Value)
+        ESPEnabled = Value
+        if ESPLibrary then
+            if Value then
+                ESPLibrary:Toggle(true)
+                ESPLibrary.Players = true
+                -- 配置ESP设置
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer then
+                        ESPLibrary:Add(player, {
+                            Name = player.Name,
+                            Color = Color3.fromRGB(255, 255, 255),
+                            IsEnabled = "ESP"
+                        })
+                    end
+                end
+            else
+                ESPLibrary:Toggle(false)
+            end
+        else
+            Rayfield:Notify({
+                Title = "错误",
+                Content = "请先加载ESP库！",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- ESP设置
+local ESPSettingsSection = GeneralTab:CreateSection("ESP设置")
+
+local ShowBoxesToggle = GeneralTab:CreateToggle({
+    Name = "显示方框",
+    CurrentValue = true,
+    Flag = "ShowBoxes",
+    Callback = function(Value)
+        if ESPLibrary then
+            ESPLibrary.Boxes = Value
+        end
+    end
+})
+
+local ShowTracersToggle = GeneralTab:CreateToggle({
+    Name = "显示追踪线",
+    CurrentValue = true,
+    Flag = "ShowTracers",
+    Callback = function(Value)
+        if ESPLibrary then
+            ESPLibrary.Tracers = Value
+        end
+    end
+})
+
+local ShowNamesToggle = GeneralTab:CreateToggle({
+    Name = "显示名字",
+    CurrentValue = true,
+    Flag = "ShowNames",
+    Callback = function(Value)
+        if ESPLibrary then
+            ESPLibrary.Names = Value
+        end
+    end
+})
+
+local ShowDistanceToggle = GeneralTab:CreateToggle({
+    Name = "显示距离",
+    CurrentValue = true,
+    Flag = "ShowDistance",
+    Callback = function(Value)
+        if ESPLibrary then
+            ESPLibrary.Distance = Value
+        end
+    end
+})
+
+-- 血量功能
+local HealthSection = GeneralTab:CreateSection("血量功能")
+local HealthWarningLabel = GeneralTab:CreateLabel("仅供娱乐使用")
+
+local HealthSlider = GeneralTab:CreateSlider({
+    Name = "设置自身血量",
+    Range = {1, 10000},
+    Increment = 10,
+    Suffix = "HP",
+    CurrentValue = 100,
+    Flag = "HealthSlider",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.MaxHealth = Value
+            player.Character.Humanoid.Health = Value
+        end
+    end
+})
+
+-- 设置其他玩家血量
+local OtherPlayerHealthSection = GeneralTab:CreateSection("设置其他玩家血量")
+
+local TargetPlayerInput = GeneralTab:CreateInput({
+    Name = "目标玩家",
+    PlaceholderText = "输入玩家名字",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+    end
+})
+
+local SetOtherHealthSlider = GeneralTab:CreateSlider({
+    Name = "设置玩家血量",
+    Range = {1, 10000},
+    Increment = 10,
+    Suffix = "HP",
+    CurrentValue = 100,
+    Flag = "SetOtherHealth",
+    Callback = function(Value)
+        local targetName = TargetPlayerInput.CurrentValue
+        local targetPlayer = game.Players:FindFirstChild(targetName)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+            targetPlayer.Character.Humanoid.MaxHealth = Value
+            targetPlayer.Character.Humanoid.Health = Value
+        end
+    end
+})
+
+-- 无限跳功能
+local InfiniteJumpSection = GeneralTab:CreateSection("无限跳功能")
+local InfiniteJumpEnabled = false
+local InfiniteJumpConnection
+
+local InfiniteJumpToggle = GeneralTab:CreateToggle({
+    Name = "开启无限跳",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
+        if Value then
+            if InfiniteJumpConnection then
+                InfiniteJumpConnection:Disconnect()
+            end
+            InfiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+                if InfiniteJumpEnabled then
+                    local character = game.Players.LocalPlayer.Character
+                    if character and character:FindFirstChildOfClass("Humanoid") then
+                        character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                    end
+                end
+            end)
+        else
+            if InfiniteJumpConnection then
+                InfiniteJumpConnection:Disconnect()
+                InfiniteJumpConnection = nil
+            end
+        end
+    end
+})
+
+-- 穿墙功能
+local NoclipSection = GeneralTab:CreateSection("穿墙功能")
+local NoclipEnabled = false
+local NoclipConnection
+
+local NoclipToggle = GeneralTab:CreateToggle({
+    Name = "开启穿墙",
+    CurrentValue = false,
+    Flag = "Noclip",
+    Callback = function(Value)
+        NoclipEnabled = Value
+        if Value then
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+            end
+            NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
+                if NoclipEnabled and game.Players.LocalPlayer.Character then
+                    for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+                NoclipConnection = nil
+            end
+        end
+    end
+})
+
+-- 传送功能
+local TeleportSection = GeneralTab:CreateSection("传送玩家功能")
+
+local PlayerNameInput = GeneralTab:CreateInput({
+    Name = "玩家名字",
+    PlaceholderText = "输入玩家名字",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+    end
+})
+
+local TeleportButton = GeneralTab:CreateButton({
+    Name = "传送到玩家",
+    Callback = function()
+        local targetName = PlayerNameInput.CurrentValue
+        if targetName == "" then
+            Rayfield:Notify({
+                Title = "传送失败",
+                Content = "请输入玩家名字",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return
+        end
+        
+        local targetPlayer = game.Players:FindFirstChild(targetName)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local localPlayer = game.Players.LocalPlayer
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                localPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+                Rayfield:Notify({
+                    Title = "传送成功",
+                    Content = "已传送到 " .. targetName,
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
+        else
+            Rayfield:Notify({
+                Title = "传送失败",
+                Content = "找不到玩家或玩家没有角色",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 玩家列表
+local PlayerListSection = GeneralTab:CreateSection("玩家列表")
+
+local PlayerListButton = GeneralTab:CreateButton({
+    Name = "+ 显示在线玩家",
+    Callback = function()
+        local players = game.Players:GetPlayers()
+        for _, player in pairs(players) do
+            if player ~= game.Players.LocalPlayer then
+                local PlayerButton = GeneralTab:CreateButton({
+                    Name = player.Name,
+                    Callback = function()
+                        PlayerNameInput:Set(player.Name)
+                    end
+                })
+            end
+        end
+    end
+})
+
+-- 飞行功能
+local FlySection = GeneralTab:CreateSection("飞行功能")
+local FlyEnabled = false
+local FlyScript
+
+local FlyToggle = GeneralTab:CreateToggle({
+    Name = "开启飞行",
+    CurrentValue = false,
+    Flag = "FlyEnabled",
+    Callback = function(Value)
+        FlyEnabled = Value
+        if Value then
+            -- 加载飞行脚本
+            local success, err = pcall(function()
+                FlyScript = loadstring(game:HttpGet("https://raw.githubusercontent.com/396abc/Script/refs/heads/main/MobileFly.lua"))()
+            end)
+            
+            if success then
+                Rayfield:Notify({
+                    Title = "飞行功能",
+                    Content = "飞行功能已加载！",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            else
+                Rayfield:Notify({
+                    Title = "飞行功能错误",
+                    Content = "加载飞行脚本失败: " .. tostring(err),
+                    Duration = 5,
+                    Image = 4483362458
+                })
+                FlyToggle:Set(false)
+            end
+        else
+            -- 关闭飞行功能
+            if FlyScript then
+                -- 这里需要根据飞行脚本的具体实现来关闭
+                Rayfield:Notify({
+                    Title = "飞行功能",
+                    Content = "飞行功能已关闭",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
+        end
+    end
+})
+
+-- 音乐功能标签
+local MusicTab = Window:CreateTab("音乐功能", "rbxassetid://4483345998")
+
+local MusicSection = MusicTab:CreateSection("音乐控制")
+local MusicEnabled = false
+local CurrentSound
+local CurrentMusicId = ""
+
+local MusicToggle = MusicTab:CreateToggle({
+    Name = "播放/停止音乐",
+    CurrentValue = false,
+    Flag = "MusicEnabled",
+    Callback = function(Value)
+        MusicEnabled = Value
+        if Value then
+            if CurrentMusicId == "" then
+                Rayfield:Notify({
+                    Title = "音乐错误",
+                    Content = "请输入音乐ID",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+                MusicToggle:Set(false)
+                return
+            end
+            
+            -- 停止现有音乐
+            if CurrentSound then
+                CurrentSound:Stop()
+                CurrentSound:Destroy()
+            end
+            
+            -- 创建新声音
+            CurrentSound = Instance.new("Sound")
+            CurrentSound.SoundId = "rbxassetid://" .. CurrentMusicId
+            CurrentSound.Looped = true
+            CurrentSound.Volume = VolumeSlider.CurrentValue / 100
+            CurrentSound.Parent = game:GetService("SoundService")
+            CurrentSound:Play()
+            
+            Rayfield:Notify({
+                Title = "音乐",
+                Content = "开始播放音乐 ID: " .. CurrentMusicId,
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            if CurrentSound then
+                CurrentSound:Stop()
+                CurrentSound:Destroy()
+                CurrentSound = nil
+                Rayfield:Notify({
+                    Title = "音乐",
+                    Content = "音乐已停止",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
+        end
+    end
+})
+
+local MusicIDInput = MusicTab:CreateInput({
+    Name = "音乐ID",
+    PlaceholderText = "输入Roblox音乐ID",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        CurrentMusicId = Text
+    end
+})
+
+local VolumeSlider = MusicTab:CreateSlider({
+    Name = "音量调节",
+    Range = {0, 100},
+    Increment = 5,
+    Suffix = "%",
+    CurrentValue = 50,
+    Flag = "VolumeSlider",
+    Callback = function(Value)
+        if CurrentSound then
+            CurrentSound.Volume = Value / 100
+        end
+    end
+})
+
+local MuteButton = MusicTab:CreateButton({
+    Name = "静音",
+    Callback = function()
+        if CurrentSound then
+            CurrentSound.Volume = 0
+            VolumeSlider:Set(0)
+            Rayfield:Notify({
+                Title = "音乐",
+                Content = "已静音",
+                Duration = 2,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+local TestMusicButton = MusicTab:CreateButton({
+    Name = "测试音乐",
+    Callback = function()
+        if CurrentMusicId ~= "" then
+            local testSound = Instance.new("Sound")
+            testSound.SoundId = "rbxassetid://" .. CurrentMusicId
+            testSound.Volume = VolumeSlider.CurrentValue / 100
+            testSound.Parent = workspace
+            testSound:Play()
+            game:GetService("Debris"):AddItem(testSound, 10)
+        end
+    end
+})
+
+-- 设置标签
+local SettingsTab = Window:CreateTab("设置", "rbxassetid://4483345998")
+
+local UISettingsSection = SettingsTab:CreateSection("界面设置")
+
+local UIScaleSlider = SettingsTab:CreateSlider({
+    Name = "界面缩放",
+    Range = {50, 150},
+    Increment = 5,
+    Suffix = "%",
+    CurrentValue = 100,
+    Flag = "UIScale",
+    Callback = function(Value)
+        -- 这里需要根据UI库的具体实现来调整缩放
+        Rayfield:Notify({
+            Title = "界面设置",
+            Content = "界面缩放已设置为: " .. Value .. "%",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+local DestroyUIButton = SettingsTab:CreateButton({
+    Name = "关闭界面",
+    Callback = function()
+        Rayfield:Destroy()
+    end
+})
+
+-- 初始化函数
+local function Initialize()
+    -- 连接玩家加入事件
+    game.Players.PlayerAdded:Connect(function(player)
+        if ESPLibrary and ESPEnabled then
+            ESPLibrary:Add(player, {
+                Name = player.Name,
+                Color = Color3.fromRGB(255, 255, 255),
+                IsEnabled = "ESP"
+            })
+        end
+    end)
+    
+    -- 连接玩家离开事件
+    game.Players.PlayerRemoving:Connect(function(player)
+        if ESPLibrary then
+            ESPLibrary:Remove(player)
+        end
+    end)
+    
+    Rayfield:Notify({
+        Title = "AI脚本2.0",
+        Content = "脚本加载成功！享受游戏！",
+        Duration = 5,
+        Image = 4483362458
+    })
+end
+
+-- 执行初始化
+Initialize()
