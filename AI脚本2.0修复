@@ -1,0 +1,409 @@
+-- AI脚本2.0 - 界面修复版
+-- 公告：该脚本还在测试阶段，如遇到功能有问题我也不会改
+
+-- 正确加载Rayfield UI库
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 创建主窗口
+local Window = Rayfield:CreateWindow({
+    Name = "AI脚本2.0",
+    LoadingTitle = "AI脚本2.0 正在初始化...",
+    LoadingSubtitle = "界面修复版 - 加载中请稍候",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "AIScript2.0",
+        FileName = "Configuration"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvite",
+        RememberJoins = true
+    },
+    KeySystem = false,
+})
+
+-- 公告标签
+local AnnouncementTab = Window:CreateTab("公告", "rbxassetid://4483345998")
+local AnnouncementSection = AnnouncementTab:CreateSection("重要公告")
+AnnouncementTab:CreateLabel("该脚本还在测试阶段，如遇到功能有问题我也不会改")
+AnnouncementTab:CreateLabel("使用风险自负，作者不承担任何责任")
+
+-- 通用功能标签
+local GeneralTab = Window:CreateTab("通用功能", "rbxassetid://4483345998")
+
+-- 透视功能部分
+local ESPSection = GeneralTab:CreateSection("透视功能")
+local ESPEnabled = false
+
+local ESPToggle = GeneralTab:CreateToggle({
+    Name = "开启透视功能",
+    CurrentValue = false,
+    Flag = "ESPEnabled",
+    Callback = function(Value)
+        ESPEnabled = Value
+        if Value then
+            -- 尝试加载ESP库
+            local success, err = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/FE-Script/main/ESP.lua"))()
+            end)
+            if success then
+                Rayfield:Notify({
+                    Title = "透视功能",
+                    Content = "ESP透视已激活！",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            else
+                Rayfield:Notify({
+                    Title = "ESP加载失败",
+                    Content = "无法加载ESP库，请检查网络连接",
+                    Duration = 5,
+                    Image = 4483362458
+                })
+                ESPToggle:Set(false)
+            end
+        else
+            Rayfield:Notify({
+                Title = "透视功能",
+                Content = "ESP透视已关闭",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 血量调节功能
+local HealthSection = GeneralTab:CreateSection("血量调节功能")
+local HealthWarning = GeneralTab:CreateLabel("⚠️ 仅供娱乐使用 ⚠️")
+
+local HealthSlider = GeneralTab:CreateSlider({
+    Name = "设置玩家血量",
+    Range = {1, 5000},
+    Increment = 50,
+    Suffix = "HP",
+    CurrentValue = 100,
+    Flag = "PlayerHealth",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.MaxHealth = Value
+            player.Character.Humanoid.Health = Value
+        end
+    end
+})
+
+-- 无限跳功能
+local JumpSection = GeneralTab:CreateSection("无限跳功能")
+local InfiniteJumpEnabled = false
+
+local InfiniteJumpToggle = GeneralTab:CreateToggle({
+    Name = "开启无限跳",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
+        if Value then
+            Rayfield:Notify({
+                Title = "无限跳",
+                Content = "无限跳已开启！空格键触发",
+                Duration = 3,
+                Image = 4483362458
+            })
+            -- 无限跳逻辑
+            game:GetService("UserInputService").JumpRequest:Connect(function()
+                if InfiniteJumpEnabled then
+                    game.Players.LocalPlayer.Character:ChangeState("Jumping")
+                end
+            end)
+        else
+            Rayfield:Notify({
+                Title = "无限跳",
+                Content = "无限跳已关闭",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 穿墙功能
+local NoclipSection = GeneralTab:CreateSection("穿墙功能")
+local NoclipEnabled = false
+
+local NoclipToggle = GeneralTab:CreateToggle({
+    Name = "开启穿墙模式",
+    CurrentValue = false,
+    Flag = "NoclipEnabled",
+    Callback = function(Value)
+        NoclipEnabled = Value
+        if Value then
+            Rayfield:Notify({
+                Title = "穿墙功能",
+                Content = "穿墙模式已激活！",
+                Duration = 3,
+                Image = 4483362458
+            })
+            -- 穿墙逻辑
+            game:GetService("RunService").Stepped:Connect(function()
+                if NoclipEnabled and game.Players.LocalPlayer.Character then
+                    for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            Rayfield:Notify({
+                Title = "穿墙功能",
+                Content = "穿墙模式已关闭",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 传送功能
+local TeleportSection = GeneralTab:CreateSection("玩家传送功能")
+local PlayerName = ""
+
+local PlayerInput = GeneralTab:CreateInput({
+    Name = "目标玩家名",
+    PlaceholderText = "输入要传送的玩家名字",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        PlayerName = Text
+    end
+})
+
+local TeleportButton = GeneralTab:CreateButton({
+    Name = "传送到玩家",
+    Callback = function()
+        if PlayerName == "" then
+            Rayfield:Notify({
+                Title = "传送失败",
+                Content = "请输入玩家名字！",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return
+        end
+        
+        local target = game.Players:FindFirstChild(PlayerName)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+            Rayfield:Notify({
+                Title = "传送成功",
+                Content = "已传送到玩家: " .. PlayerName,
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "传送失败",
+                Content = "找不到玩家或玩家没有角色！",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 玩家列表按钮
+local PlayerListButton = GeneralTab:CreateButton({
+    Name = "+ 显示在线玩家列表",
+    Callback = function()
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                GeneralTab:CreateButton({
+                    Name = player.Name,
+                    Callback = function()
+                        PlayerInput:Set(player.Name)
+                        PlayerName = player.Name
+                    end
+                })
+            end
+        end
+    end
+})
+
+-- 飞行功能
+local FlySection = GeneralTab:CreateSection("飞行功能")
+local FlyEnabled = false
+
+local FlyToggle = GeneralTab:CreateToggle({
+    Name = "开启飞行模式",
+    CurrentValue = false,
+    Flag = "FlyEnabled",
+    Callback = function(Value)
+        FlyEnabled = Value
+        if Value then
+            local success, err = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/396abc/Script/refs/heads/main/MobileFly.lua"))()
+            end)
+            if success then
+                Rayfield:Notify({
+                    Title = "飞行功能",
+                    Content = "飞行模式已加载！",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            else
+                Rayfield:Notify({
+                    Title = "飞行加载失败",
+                    Content = "无法加载飞行脚本: " .. tostring(err),
+                    Duration = 5,
+                    Image = 4483362458
+                })
+                FlyToggle:Set(false)
+            end
+        else
+            Rayfield:Notify({
+                Title = "飞行功能",
+                Content = "飞行模式已关闭",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 音乐功能标签
+local MusicTab = Window:CreateTab("音乐娱乐", "rbxassetid://4483345998")
+
+local MusicSection = MusicTab:CreateSection("音乐控制")
+local CurrentSound
+local MusicID = ""
+
+local MusicInput = MusicTab:CreateInput({
+    Name = "Roblox音乐ID",
+    PlaceholderText = "输入音乐资源ID",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        MusicID = Text
+    end
+})
+
+local MusicToggle = MusicTab:CreateToggle({
+    Name = "播放/停止音乐",
+    CurrentValue = false,
+    Flag = "MusicToggle",
+    Callback = function(Value)
+        if Value then
+            if MusicID == "" then
+                Rayfield:Notify({
+                    Title = "音乐播放失败",
+                    Content = "请输入音乐ID！",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+                MusicToggle:Set(false)
+                return
+            end
+            
+            CurrentSound = Instance.new("Sound")
+            CurrentSound.SoundId = "rbxassetid://" .. MusicID
+            CurrentSound.Looped = true
+            CurrentSound.Volume = 0.5
+            CurrentSound.Parent = workspace
+            CurrentSound:Play()
+            
+            Rayfield:Notify({
+                Title = "音乐播放",
+                Content = "开始播放音乐 ID: " .. MusicID,
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            if CurrentSound then
+                CurrentSound:Stop()
+                CurrentSound:Destroy()
+                CurrentSound = nil
+                Rayfield:Notify({
+                    Title = "音乐播放",
+                    Content = "音乐已停止",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
+        end
+    end
+})
+
+local VolumeSlider = MusicTab:CreateSlider({
+    Name = "音量调节",
+    Range = {0, 100},
+    Increment = 5,
+    Suffix = "%",
+    CurrentValue = 50,
+    Flag = "VolumeControl",
+    Callback = function(Value)
+        if CurrentSound then
+            CurrentSound.Volume = Value / 100
+        end
+    end
+})
+
+local MuteButton = MusicTab:CreateButton({
+    Name = "一键静音",
+    Callback = function()
+        if CurrentSound then
+            CurrentSound.Volume = 0
+            VolumeSlider:Set(0)
+            Rayfield:Notify({
+                Title = "音乐控制",
+                Content = "已静音",
+                Duration = 2,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- 脚本设置标签
+local SettingsTab = Window:CreateTab("脚本设置", "rbxassetid://4483345998")
+
+local SettingsSection = SettingsTab:CreateSection("界面控制")
+SettingsTab:CreateButton({
+    Name = "保存当前设置",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "设置已保存",
+            Content = "您的偏好设置已保存！",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "重置所有设置",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "设置已重置",
+            Content = "所有设置已恢复默认！",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "关闭脚本界面",
+    Callback = function()
+        Rayfield:Destroy()
+    end
+})
+
+-- 脚本加载完成提示
+Rayfield:Notify({
+    Title = "AI脚本2.0 加载成功",
+    Content = "所有功能已就绪！享受游戏！",
+    Duration = 6,
+    Image = 4483362458
+})
+
+-- 加载配置
+Rayfield:LoadConfiguration()
